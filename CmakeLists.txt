@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.4-3.25)
+
+project(C-ENCryptor LANGUAGES C)
+
+
+# setup external libraries
+find_package(OpenSSL REQUIRED)
+
+
+# src files
+set(SRC
+    src/cipher.c
+)
+set(HEADER
+    ./include/cipher.h
+)
+
+
+add_executable(${PROJECT_NAME}
+    ${SRC}
+    ${HEADER}
+)
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries(${PROJECT_NAME} OpenSSL::Crypto)
+
+
