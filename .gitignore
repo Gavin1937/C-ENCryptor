@@ -1,8 +1,10 @@
 
 # files
 /**/*main*
+/**/*test*
 
 # folders
 /.vscode/
-/build/
+/**/build/
+/testing/
 

@@ -3,20 +3,28 @@ cmake_minimum_required(VERSION 3.4-3.25)
 project(C-ENCryptor LANGUAGES C)
 
 
+# src files
+file(GLOB SRC
+    "src/*.c"
+)
+file(GLOB HEADER
+    "include/*.h"
+)
+
+
 # setup external libraries
+set(OPENSSL_USE_STATIC_LIBS TRUE)
 find_package(OpenSSL REQUIRED)
 
-
-# src files
-set(SRC
-    src/cipher.c
-)
-set(HEADER
-    ./include/cipher.h
-)
+option(CE_BUILD_SHARED_LIBS "Build C-ENCryptor as Shared Library" ON)
+if (CE_BUILD_SHARED_LIBS)
+    set(CE_BUILD_TYPE SHARED)
+else()
+    set(CE_BUILD_TYPE STATIC)
+endif()
 
 
-add_executable(${PROJECT_NAME}
+add_library(${PROJECT_NAME} ${CE_BUILD_TYPE}
     ${SRC}
     ${HEADER}
 )
