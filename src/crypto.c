@@ -1,16 +1,13 @@
 #include <openssl/evp.h>
+#include <openssl/sha.h>
 
 #include <string.h>
 #include <assert.h>
 
 #include "../include/crypto.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-
-EXPORT_FUNC int CE_AES_encrypt(
+int CE_AES_encrypt(
     const unsigned char* data_in, unsigned char* data_out, const int data_length,
     const unsigned char* key, const unsigned char* iv, const int padding
 )
@@ -44,7 +41,7 @@ EXPORT_FUNC int CE_AES_encrypt(
 }
 
 
-EXPORT_FUNC int CE_AES_decrypt(
+int CE_AES_decrypt(
     const unsigned char* data_in, unsigned char* data_out, const int data_length,
     const unsigned char* key, const unsigned char* iv, const int padding
 )
@@ -77,7 +74,32 @@ EXPORT_FUNC int CE_AES_decrypt(
     return output_len;
 }
 
-
-#ifdef __cplusplus
+int key_size_in_bytes(aes_key_bits)
+{
+    int key_size = 0;
+    if (aes_key_bits <= 128)
+        key_size = 16;
+    else if (aes_key_bits <= 192)
+        key_size = 24;
+    else
+        key_size = 32;
+    return key_size;
 }
-#endif
+
+void derive_master_key(
+    unsigned char* key_out,
+    const char* password, const int password_size,
+    const unsigned char* salt, const int salt_size,
+    int aes_key_bit
+)
+{
+    int key_size = key_size_in_bytes(aes_key_bit);
+    
+    PKCS5_PBKDF2_HMAC(
+        password, password_size,
+        salt, salt_size,
+        ENCR_PBKDF2_ROUNDS, EVP_sha256(),
+        AES_CBC_KEY_LENGTH, key_out
+    );
+}
+
