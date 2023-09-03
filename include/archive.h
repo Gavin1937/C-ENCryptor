@@ -3,23 +3,25 @@
 
 #include "macros.h"
 #include "locator.h"
+#include "archive_item.h"
 
 #include <stdio.h>
 #include <stdint.h>
 
 
-EXPORT_FUNC typedef struct Archive {
+EXPORT_SYMBOL typedef struct CEArchive {
     FILE* fp;
     int32_t size;
-    HeaderLocator header_locator;
-} Archive;
+    CEHeaderLocator header_locator;
+    CEArchiveItem archive_item; // this should be a list of items
+} CEArchive;
 
-EXPORT_FUNC void Archive_init(
+EXPORT_SYMBOL void CEArchive_init(
     const char* file_path,
     const char* password, const uint32_t password_size,
-    Archive* archive
+    CEArchive* archive
 );
 
-EXPORT_FUNC void Archive_clean(Archive* archive);
+EXPORT_SYMBOL void CEArchive_clean(CEArchive* archive);
 
 #endif

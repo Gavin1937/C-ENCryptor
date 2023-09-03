@@ -4,18 +4,20 @@
 #include "../include/util.h"
 #include "../include/error_handle.h"
 #include "../include/locator.h"
+#include "../include/archive_item.h"
 
 #include <stdlib.h>
 
 
-EXPORT_FUNC void Archive_init(
+EXPORT_SYMBOL void CEArchive_init(
     const char* file_path,
-    char* password, const uint32_t password_size,
-    Archive* archive
+    const char* password, const uint32_t password_size,
+    CEArchive* archive
 )
 {
+    // open file in binary mode
     FILE* fp;
-    fopen_s(&fp, file_path, "r");
+    fopen_s(&fp, file_path, "rb");
     uint32_t header = 0;
     
     if (ferror(fp)) {
@@ -35,9 +37,9 @@ EXPORT_FUNC void Archive_init(
     archive->size = ftell(archive->fp);
     fseek(archive->fp, 0L, SEEK_SET);
     
-    // init HeaderLocator
+    // init CEHeaderLocator
     
-    // get HeaderLocator size
+    // get CEHeaderLocator size
     fseek(archive->fp, -8L, SEEK_END);
     header = f_read_uint32(fp);
     int32_t header_locator_size = f_read_uint32(fp);
@@ -46,19 +48,30 @@ EXPORT_FUNC void Archive_init(
         "Invalid directory locator size.\n"
     );
     
-    HeaderLocator_init(
+    CEHeaderLocator_init(
         archive->fp,
         archive->size-header_locator_size, header_locator_size,
         password, password_size,
         &(archive->header_locator)
     );
     
+    // read file records / archive items
+    CEArchiveItem_init(
+        archive->fp,
+        archive->header_locator.directory_locator.decrypted_position,
+        archive->header_locator.directory_locator.decrypted_size,
+        archive->header_locator.aes_key_bits,
+        archive->header_locator.master_key,
+        (archive->header_locator.calculate_files_hmac || archive->header_locator.calculate_directory_hmac),
+        &(archive->archive_item)
+    );
 }
 
-EXPORT_FUNC void Archive_clean(Archive* archive)
+EXPORT_SYMBOL void CEArchive_clean(CEArchive* archive)
 {
     if (!archive->fp)
         fclose(archive->fp);
     archive->size = 0;
-    HeaderLocator_clean(&(archive->header_locator));
+    CEHeaderLocator_clean(&(archive->header_locator));
+    CEArchiveItem_clean(&(archive->archive_item));
 }

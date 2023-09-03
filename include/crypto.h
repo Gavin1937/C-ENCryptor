@@ -1,14 +1,7 @@
 #ifndef CRYPTO_H
 #define CRYPTO_H
 
-
-#define AES_BLOCK_SIZE 16
-#define AES_CBC_KEY_LENGTH 16 // 128 bits
-#define AES_CBC_IV_LENGTH 16 // 128 bits
-#define NO_PADDING 0
-#define PKCS7_PADDING 1
-#define ENCR_PBKDF2_ROUNDS 4096
-
+#include <stdint.h>
 
 int CE_AES_encrypt(
     const unsigned char* data_in, unsigned char* data_out, const int data_length,
@@ -27,5 +20,18 @@ void derive_master_key(
     int aes_key_bit
 );
 
+int key_size_in_bytes(uint8_t aes_key_bits);
+
+void decrypt_locator(
+    const unsigned char* master_key,
+    const uint64_t* encr_position,
+    const uint64_t* encr_size,
+    const uint64_t* encr_reserved_1,
+    const uint64_t* encr_reserved_2,
+    uint64_t* decr_position,
+    uint64_t* decr_size,
+    uint64_t* decr_reserved_1,
+    uint64_t* decr_reserved_2
+);
 
 #endif

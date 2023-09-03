@@ -2,9 +2,9 @@
 #define MACROS_H
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-#define EXPORT_FUNC __declspec(dllexport)
+#define EXPORT_SYMBOL __declspec(dllexport)
 #else
-#define EXPORT_FUNC
+#define EXPORT_SYMBOL
 #endif
 
 #endif

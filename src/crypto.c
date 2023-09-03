@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "../include/crypto.h"
+#include "../include/constants.h"
 
 
 int CE_AES_encrypt(
@@ -24,7 +25,7 @@ int CE_AES_encrypt(
     int pad = padding == 0 ? NO_PADDING : PKCS7_PADDING;
     
     // setup cipher
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_set_padding(ctx, pad);
     assert(1 == EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv));
     
@@ -58,7 +59,7 @@ int CE_AES_decrypt(
     int pad = padding == 0 ? NO_PADDING : PKCS7_PADDING;
     
     // setup cipher
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_set_padding(ctx, pad);
     assert(1 == EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv));
     
@@ -74,7 +75,7 @@ int CE_AES_decrypt(
     return output_len;
 }
 
-int key_size_in_bytes(aes_key_bits)
+int key_size_in_bytes(uint8_t aes_key_bits)
 {
     int key_size = 0;
     if (aes_key_bits <= 128)
@@ -88,7 +89,7 @@ int key_size_in_bytes(aes_key_bits)
 
 void derive_master_key(
     unsigned char* key_out,
-    const char* password, const int password_size,
+    const unsigned char* password, const int password_size,
     const unsigned char* salt, const int salt_size,
     int aes_key_bit
 )
@@ -101,5 +102,32 @@ void derive_master_key(
         ENCR_PBKDF2_ROUNDS, EVP_sha256(),
         AES_CBC_KEY_LENGTH, key_out
     );
+}
+
+void decrypt_locator(
+    const unsigned char* master_key,
+    const uint64_t* encr_position,
+    const uint64_t* encr_size,
+    const uint64_t* encr_reserved_1,
+    const uint64_t* encr_reserved_2,
+    uint64_t* decr_position,
+    uint64_t* decr_size,
+    uint64_t* decr_reserved_1,
+    uint64_t* decr_reserved_2
+)
+{
+    unsigned char encr_buffer[32];
+    unsigned char decr_buffer[32];
+    memcpy_s((encr_buffer+0), 8, encr_position, 8);
+    memcpy_s((encr_buffer+8), 8, encr_size, 8);
+    memcpy_s((encr_buffer+16), 8, encr_reserved_1, 8);
+    memcpy_s((encr_buffer+24), 8, encr_reserved_2, 8);
+    
+    CE_AES_decrypt(encr_buffer, decr_buffer, 32, master_key, NULL, NO_PADDING);
+    
+    memcpy_s(decr_position, 8, (decr_buffer+0), 8);
+    memcpy_s(decr_size, 8, (decr_buffer+8), 8);
+    memcpy_s(decr_reserved_1, 8, (decr_buffer+16), 8);
+    memcpy_s(decr_reserved_2, 8, (decr_buffer+24), 8);
 }
 

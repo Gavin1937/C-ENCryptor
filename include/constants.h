@@ -1,6 +1,14 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+// for crypto.c
+#define AES_BLOCK_SIZE 16
+#define AES_CBC_KEY_LENGTH 16 // 128 bits
+#define AES_CBC_IV_LENGTH 16 // 128 bits
+#define NO_PADDING 0
+#define PKCS7_PADDING 1
+#define ENCR_PBKDF2_ROUNDS 4096
+
 
 /* Header field identifiers, magic numbers, etc. In reversed order because of little endian CPU */
 #define ENEncryptoHeader               0x3145504d // 'MPE1'
@@ -14,7 +22,7 @@
 #define ENHeaderElementFileOwner       0x4e574f46 // 'FOWN'
 #define ENHeaderElementFileGroup       0x50524746 // 'FGRP'
 #define ENHeaderElementFileMDat        0x54444d46 // 'FMDT'
-#define ENHeaderElementFileCDat        0x54444346 // 'FCDT'
+#define ENHeaderElementFileCDat        0x54434d46 // 'FMCT'
 #define ENHeaderElementFileUTI         0x49545546 // 'FUTI'
 #define ENHeaderElementFileHMAC        0x434d4846 // 'FHMC'
 #define ENHeaderElementFileFlags       0x474c4646 // 'FFLG'

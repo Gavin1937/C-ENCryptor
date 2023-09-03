@@ -1,21 +1,22 @@
 
 #include "../include/util.h"
+#include "../include/error_handle.h"
 
 #include <assert.h>
 #include <string.h>
 
 
-void read_file(FILE* fp, const int size_to_read, unsigned char* data_out)
+int read_file(FILE* fp, const int size_to_read, unsigned char* data_out)
 {
     assert(fp);
     
-    int real_size = (int)fread_s(data_out, size_to_read, sizeof(unsigned char), size_to_read, fp);
-    if (ferror(fp)) {
-        real_size = 0;
-        clearerr(fp);
-    }
+    int size_read = (int)fread_s(data_out, size_to_read, 1, size_to_read, fp);
+    condition_check(
+        (ferror(fp) != 0),
+        "Failed to read from file\n"
+    );
     
-    return real_size;
+    return size_read;
 }
 void read_bytes(const unsigned char* data_in, const int size_to_read, unsigned char* data_out)
 {

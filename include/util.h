@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void read_file(FILE* fp, const int size_to_read, unsigned char* data_out);
+int read_file(FILE* fp, const int size_to_read, unsigned char* data_out);
 void read_bytes(const unsigned char* data_in, const int size_to_read, unsigned char* data_out);
 
 const uint8_t f_read_uint8(FILE* fp);
