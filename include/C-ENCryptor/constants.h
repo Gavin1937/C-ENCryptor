@@ -10,6 +10,10 @@
 #define ENCR_PBKDF2_ROUNDS 4096
 
 
+// for zlib
+#define ZLIB_CHUNK 16384 // 16 * 1024
+
+
 /* Header field identifiers, magic numbers, etc. In reversed order because of little endian CPU */
 #define ENEncryptoHeader               0x3145504d // 'MPE1'
 #define ENHeaderLocalFile              0x434c4448 // 'HDLC'

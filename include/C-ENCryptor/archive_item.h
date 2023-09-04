@@ -40,6 +40,15 @@ EXPORT_SYMBOL void CEArchiveItem_init(
     CEArchiveItem* item
 );
 
+// decrypt a CEArchiveItem as stream
+// we will leave the file writing part of decryption to outer function
+// the length of parameter "data_out" MUST be ZLIB_CHUNK (16384)
+EXPORT_SYMBOL void CEArchiveItem_decrypt(
+    CEArchiveItem* item,
+    FILE* fp,
+    unsigned char* data_out
+);
+
 EXPORT_SYMBOL void CEArchiveItem_clean(CEArchiveItem* item);
 
 #endif

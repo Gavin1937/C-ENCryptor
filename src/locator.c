@@ -1,8 +1,8 @@
 
-#include "../include/locator.h"
-#include "../include/util.h"
-#include "../include/constants.h"
-#include "../include/error_handle.h"
+#include "../include/C-ENCryptor/locator.h"
+#include "../include/C-ENCryptor/util.h"
+#include "../include/C-ENCryptor/constants.h"
+#include "../include/C-ENCryptor/error_handle.h"
 
 #include <string.h>
 

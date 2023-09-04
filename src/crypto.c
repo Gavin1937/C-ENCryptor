@@ -4,8 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../include/crypto.h"
-#include "../include/constants.h"
+#include "../include/C-ENCryptor/crypto.h"
+#include "../include/C-ENCryptor/constants.h"
 
 
 int CE_AES_encrypt(

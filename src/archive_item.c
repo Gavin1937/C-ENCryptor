@@ -1,9 +1,9 @@
 
-#include "../include/archive_item.h"
-#include "../include/util.h"
-#include "../include/error_handle.h"
-#include "../include/crypto.h"
-#include "../include/constants.h"
+#include "../include/C-ENCryptor/archive_item.h"
+#include "../include/C-ENCryptor/util.h"
+#include "../include/C-ENCryptor/error_handle.h"
+#include "../include/C-ENCryptor/crypto.h"
+#include "../include/C-ENCryptor/constants.h"
 
 #include <stdlib.h>
 
@@ -48,7 +48,7 @@ EXPORT_SYMBOL void CEArchiveItem_init(
     // read file record
     uint32_t header = 0;
     
-    // read & first 16 bytes to know encrypted file header size
+    // read first 16 bytes to get encrypted file header size
     unsigned char first_16_bytes_encrypted[16];
     unsigned char first_16_bytes_decrypted[16];
     read_file(fp, 16, first_16_bytes_encrypted);
@@ -67,7 +67,7 @@ EXPORT_SYMBOL void CEArchiveItem_init(
     fseek(fp, (long)item_header_start, SEEK_SET);
     unsigned char* item_header_encrypted = malloc(item_header_size);
     unsigned char* item_header_decrypted = malloc(item_header_size);
-    read_file(fp, 4+4+item->header_size, item_header_encrypted);
+    read_file(fp, item_header_size, item_header_encrypted);
     CE_AES_decrypt(item_header_encrypted, item_header_decrypted, item_header_size, item->item_aes_key, item->item_aes_iv, NO_PADDING);
     
     // read individual file header attributes
@@ -138,6 +138,17 @@ EXPORT_SYMBOL void CEArchiveItem_init(
             break;
         }
     }
+}
+
+EXPORT_SYMBOL void CEArchiveItem_decrypt(
+    CEArchiveItem* item,
+    FILE* fp,
+    unsigned char* data_out
+)
+{
+    fseek(fp, item->file_start_location, SEEK_SET);
+    
+    
 }
 
 EXPORT_SYMBOL void CEArchiveItem_clean(CEArchiveItem* item)

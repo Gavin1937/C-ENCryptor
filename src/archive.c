@@ -1,10 +1,10 @@
 
-#include "../include/archive.h"
-#include "../include/constants.h"
-#include "../include/util.h"
-#include "../include/error_handle.h"
-#include "../include/locator.h"
-#include "../include/archive_item.h"
+#include "../include/C-ENCryptor/archive.h"
+#include "../include/C-ENCryptor/constants.h"
+#include "../include/C-ENCryptor/util.h"
+#include "../include/C-ENCryptor/error_handle.h"
+#include "../include/C-ENCryptor/locator.h"
+#include "../include/C-ENCryptor/archive_item.h"
 
 #include <stdlib.h>
 
