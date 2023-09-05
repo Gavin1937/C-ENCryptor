@@ -35,20 +35,48 @@ EXPORT_SYMBOL void CEArchiveItem_init(
     uint64_t start,
     uint64_t size,
     uint8_t aes_key_bits,
-    unsigned char* master_key,
+    const unsigned char* master_key,
     bool hmac,
     CEArchiveItem* item
 );
 
-// decrypt a CEArchiveItem as stream
-// we will leave the file writing part of decryption to outer function
-// the length of parameter "data_out" MUST be ZLIB_CHUNK (16384)
 EXPORT_SYMBOL void CEArchiveItem_decrypt(
     CEArchiveItem* item,
     FILE* fp,
-    unsigned char* data_out
+    FILE* out_fp,
+    uint8_t aes_key_bits,
+    const unsigned char* master_key,
+    bool hmac
 );
 
 EXPORT_SYMBOL void CEArchiveItem_clean(CEArchiveItem* item);
+
+
+// helper functions
+
+int decrypt_key_iv(
+    FILE* fp,
+    uint64_t start,
+    uint8_t aes_key_bits,
+    const unsigned char* master_key,
+    bool hmac,
+    unsigned char* out_aes_iv,
+    unsigned char* out_aes_key,
+    unsigned char* out_hmac_key
+);
+
+typedef struct read_item_header_ret {
+    uint32_t header_size;
+    uint16_t header_padding_len;
+} read_item_header_ret;
+
+read_item_header_ret read_item_header(
+    FILE* fp,
+    uint64_t start,
+    int key_iv_len,
+    const unsigned char* aes_key,
+    const unsigned char* aes_iv,
+    CEArchiveItem* item_out
+);
 
 #endif
