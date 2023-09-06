@@ -2,20 +2,19 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || defined(__CYGWIN__)
 #define SEPARATOR '\\'
 #define SEPARATOR_STR "\\"
-#define PREVIEW_OUTPUT_PATH "output\\preview.png"
-#define DECRYPT_OUTPUT_PATH "output\\decrypt"
-#define ARCHIVE_FILEPATH "data\\encrypted\\encrypted_img01.crypto"
+#define PREVIEW_OUTPUT_FILENAME "preview.png"
+#define DECRYPT_OUTPUT_FILENAME "decrypt"
 #else
 #define SEPARATOR '/'
 #define SEPARATOR_STR "/"
-#define PREVIEW_OUTPUT_PATH "output/preview.png"
-#define DECRYPT_OUTPUT_PATH "output/decrypt"
-#define ARCHIVE_FILEPATH "data/encrypted/encrypted_img01.crypto"
+#define PREVIEW_OUTPUT_FILENAME "preview.png"
+#define DECRYPT_OUTPUT_FILENAME "decrypt"
 #endif
 
 
@@ -63,34 +62,30 @@ static char *last_strstr(const char *haystack, const char *needle)
 
 int main(int argc, char** argv)
 {
+    if (argc <= 1) {
+        printf("Usage: demo [archive_filepath] [output_folderpath]\n");
+        exit(0);
+    }
+    
     // setup output file path
-    char base_path[2048];
-    char* exe_start = strrchr(argv[0], SEPARATOR);
-    *exe_start = 0;
-    char* demo_start = last_strstr(argv[0], "demo");
-    int demo_pos = (demo_start - argv[0]);
-    memcpy(base_path, argv[0], demo_pos + 4);
-    base_path[demo_pos+4] = 0;
-    printf("base_path = %s\n", base_path);
+    char* archive_filepath = argv[1];
+    char preview_output_filename[2048] = "";
+    char decrypt_output_filename[2048] = "";
     
-    char archive_filepath[2048] = "";
-    char preview_output_path[2048] = "";
-    char decrypt_output_path[2048] = "";
-    
-    strcat(archive_filepath, base_path);
-    strcat(archive_filepath, SEPARATOR_STR);
-    strcat(archive_filepath, ARCHIVE_FILEPATH);
     printf("archive_filepath = %s\n", archive_filepath);
     
-    strcat(preview_output_path, base_path);
-    strcat(preview_output_path, SEPARATOR_STR);
-    strcat(preview_output_path, PREVIEW_OUTPUT_PATH);
-    printf("preview_output_path = %s\n", preview_output_path);
+    bool need_separator = (argv[2][strlen(argv[2])-1] != SEPARATOR);
+    strcat(preview_output_filename, argv[2]);
+    if (need_separator)
+        strcat(preview_output_filename, SEPARATOR_STR);
+    strcat(preview_output_filename, PREVIEW_OUTPUT_FILENAME);
+    printf("preview_output_filename = %s\n", preview_output_filename);
     
-    strcat(decrypt_output_path, base_path);
-    strcat(decrypt_output_path, SEPARATOR_STR);
-    strcat(decrypt_output_path, DECRYPT_OUTPUT_PATH);
-    printf("decrypt_output_path = %s\n", decrypt_output_path);
+    strcat(decrypt_output_filename, argv[2]);
+    if (need_separator)
+        strcat(decrypt_output_filename, SEPARATOR_STR);
+    strcat(decrypt_output_filename, DECRYPT_OUTPUT_FILENAME);
+    printf("decrypt_output_filename = %s\n", decrypt_output_filename);
     
     
     // setup CEArchive
@@ -146,7 +141,7 @@ int main(int argc, char** argv)
     // decrypt preview image
     unsigned char* preview_bytes = malloc(arc.header_locator.directory_locator.archive_preview_size);
     int size_read = CEDirectoryLocator_decrypt_preview(&(arc.header_locator.directory_locator), arc.header_locator.master_key, arc.fp, preview_bytes);
-    FILE* preview_fp = fopen(preview_output_path, "wb+");
+    FILE* preview_fp = fopen(preview_output_filename, "wb+");
     if (preview_fp && preview_bytes) {
         fwrite(preview_bytes, 1, size_read, preview_fp);
         fclose(preview_fp);
@@ -177,7 +172,7 @@ int main(int argc, char** argv)
     
     
     // decrypt output file
-    FILE* fp_out = fopen(decrypt_output_path, "wb");
+    FILE* fp_out = fopen(decrypt_output_filename, "wb");
     
     CEArchiveItem_decrypt(&arc.archive_item, arc.fp, fp_out, arc.header_locator.aes_key_bits, arc.header_locator.master_key, hmac);
     
