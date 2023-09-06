@@ -21,7 +21,7 @@ int CE_AES_encrypt(
     if (iv == NULL)
         memset(tmp_iv, 0, AES_CBC_IV_LENGTH);
     else
-        memcpy_s(tmp_iv, AES_CBC_IV_LENGTH, iv, AES_CBC_IV_LENGTH);
+        memcpy(tmp_iv, iv, AES_CBC_IV_LENGTH);
     int pad = padding == 0 ? NO_PADDING : PKCS7_PADDING;
     
     // setup cipher
@@ -55,7 +55,7 @@ int CE_AES_decrypt(
     if (iv == NULL)
         memset(tmp_iv, 0, AES_CBC_IV_LENGTH);
     else
-        memcpy_s(tmp_iv, AES_CBC_IV_LENGTH, iv, AES_CBC_IV_LENGTH);
+        memcpy(tmp_iv, iv, AES_CBC_IV_LENGTH);
     int pad = padding == 0 ? NO_PADDING : PKCS7_PADDING;
     
     // setup cipher
@@ -118,16 +118,16 @@ void decrypt_locator(
 {
     unsigned char encr_buffer[32];
     unsigned char decr_buffer[32];
-    memcpy_s((encr_buffer+0), 8, encr_position, 8);
-    memcpy_s((encr_buffer+8), 8, encr_size, 8);
-    memcpy_s((encr_buffer+16), 8, encr_reserved_1, 8);
-    memcpy_s((encr_buffer+24), 8, encr_reserved_2, 8);
+    memcpy((encr_buffer+0), encr_position, 8);
+    memcpy((encr_buffer+8), encr_size, 8);
+    memcpy((encr_buffer+16), encr_reserved_1, 8);
+    memcpy((encr_buffer+24), encr_reserved_2, 8);
     
     CE_AES_decrypt(encr_buffer, decr_buffer, 32, master_key, NULL, NO_PADDING);
     
-    memcpy_s(decr_position, 8, (decr_buffer+0), 8);
-    memcpy_s(decr_size, 8, (decr_buffer+8), 8);
-    memcpy_s(decr_reserved_1, 8, (decr_buffer+16), 8);
-    memcpy_s(decr_reserved_2, 8, (decr_buffer+24), 8);
+    memcpy(decr_position, (decr_buffer+0), 8);
+    memcpy(decr_size, (decr_buffer+8), 8);
+    memcpy(decr_reserved_1, (decr_buffer+16), 8);
+    memcpy(decr_reserved_2, (decr_buffer+24), 8);
 }
 

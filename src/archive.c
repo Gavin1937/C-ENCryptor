@@ -16,8 +16,7 @@ EXPORT_SYMBOL void CEArchive_init(
 )
 {
     // open file in binary mode
-    FILE* fp;
-    fopen_s(&fp, file_path, "rb");
+    FILE* fp = fopen(file_path, "rb");
     uint32_t header = 0;
     
     if (ferror(fp)) {

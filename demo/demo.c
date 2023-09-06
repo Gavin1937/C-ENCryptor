@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     char base_path[2048];
     char* exe_start = strrchr(argv[0], SEPARATOR);
     int exe_pos = (exe_start - argv[0]);
-    memcpy_s(base_path, 2048, argv[0], exe_pos);
+    memcpy(base_path, argv[0], exe_pos);
     base_path[exe_pos] = 0;
     char* parent_start = strrchr(base_path, SEPARATOR);
     *parent_start = 0;
@@ -59,19 +59,19 @@ int main(int argc, char** argv)
     char preview_output_path[2048] = "";
     char decrypt_output_path[2048] = "";
     
-    strcat_s(archive_filepath, 2048, base_path);
-    strcat_s(archive_filepath, 2048, SEPARATOR_STR);
-    strcat_s(archive_filepath, 2048, ARCHIVE_FILEPATH);
+    strcat(archive_filepath, base_path);
+    strcat(archive_filepath, SEPARATOR_STR);
+    strcat(archive_filepath, ARCHIVE_FILEPATH);
     printf("archive_filepath = %s\n", archive_filepath);
     
-    strcat_s(preview_output_path, 2048, base_path);
-    strcat_s(preview_output_path, 2048, SEPARATOR_STR);
-    strcat_s(preview_output_path, 2048, PREVIEW_OUTPUT_PATH);
+    strcat(preview_output_path, base_path);
+    strcat(preview_output_path, SEPARATOR_STR);
+    strcat(preview_output_path, PREVIEW_OUTPUT_PATH);
     printf("preview_output_path = %s\n", preview_output_path);
     
-    strcat_s(decrypt_output_path, 2048, base_path);
-    strcat_s(decrypt_output_path, 2048, SEPARATOR_STR);
-    strcat_s(decrypt_output_path, 2048, DECRYPT_OUTPUT_PATH);
+    strcat(decrypt_output_path, base_path);
+    strcat(decrypt_output_path, SEPARATOR_STR);
+    strcat(decrypt_output_path, DECRYPT_OUTPUT_PATH);
     printf("decrypt_output_path = %s\n", decrypt_output_path);
     
     
@@ -128,8 +128,7 @@ int main(int argc, char** argv)
     // decrypt preview image
     unsigned char* preview_bytes = malloc(arc.header_locator.directory_locator.archive_preview_size);
     int size_read = CEDirectoryLocator_decrypt_preview(&(arc.header_locator.directory_locator), arc.header_locator.master_key, arc.fp, preview_bytes);
-    FILE* preview_fp;
-    fopen_s(&preview_fp, preview_output_path, "wb+");
+    FILE* preview_fp = fopen(preview_output_path, "wb+");
     if (preview_fp && preview_bytes) {
         fwrite(preview_bytes, 1, size_read, preview_fp);
         fclose(preview_fp);
@@ -160,8 +159,7 @@ int main(int argc, char** argv)
     
     
     // decrypt output file
-    FILE* fp_out;
-    fopen_s(&fp_out, decrypt_output_path, "wb");
+    FILE* fp_out = fopen(decrypt_output_path, "wb");
     
     CEArchiveItem_decrypt(&arc.archive_item, arc.fp, fp_out, arc.header_locator.aes_key_bits, arc.header_locator.master_key, hmac);
     

@@ -171,7 +171,7 @@ EXPORT_SYMBOL void CEArchiveItem_decrypt(
     while (zlib_ret != Z_STREAM_END && decrypt_cursor < decrypt_end){
         
         // read from file & decrypt
-        fread_s(left_buff, (size_t)ZLIB_CHUNK, (size_t)1, (size_t)size_to_read, fp);
+        fread(left_buff, (size_t)1, (size_t)size_to_read, fp);
         
         condition_check(
             (0 == EVP_DecryptUpdate(ctx, right_buff, &aes_chunk_len, left_buff, (int)size_to_read)),
