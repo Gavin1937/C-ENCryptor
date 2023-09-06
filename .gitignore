@@ -8,6 +8,6 @@
 
 # folders
 /.vscode/
-/**/build/
+/**/*build*/
 /testing/
 
