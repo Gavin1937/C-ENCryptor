@@ -54,5 +54,7 @@ By adding option `-DCE_BUILD_SHARED_LIBS=ON` after above cmake command, you can 
 
 If you change that option to `-DCE_BUILD_SHARED_LIBS=OFF`, C-ENCryptor will be build as a static library.
 
+You can also use set this cmake option inside your CMakeLists.txt, checkout [demo/CMakeLists.txt](demo/CMakeLists.txt) for detail
+
 **remember to recompile your project after switching**
 
