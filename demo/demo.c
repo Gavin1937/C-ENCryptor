@@ -40,6 +40,24 @@ void print_bytes(const unsigned char* data, const int size, const char* text_in_
     printf("\n");
 }
 
+/* By liw. */
+// https://stackoverflow.com/a/1643946
+static char *last_strstr(const char *haystack, const char *needle)
+{
+    if (*needle == '\0')
+        return (char *) haystack;
+    
+    char *result = NULL;
+    for (;;) {
+        char *p = strstr(haystack, needle);
+        if (p == NULL)
+            break;
+        result = p;
+        haystack = p + 1;
+    }
+    
+    return result;
+}
 
 
 
@@ -48,12 +66,12 @@ int main(int argc, char** argv)
     // setup output file path
     char base_path[2048];
     char* exe_start = strrchr(argv[0], SEPARATOR);
-    int exe_pos = (exe_start - argv[0]);
-    memcpy(base_path, argv[0], exe_pos);
-    base_path[exe_pos] = 0;
-    char* parent_start = strrchr(base_path, SEPARATOR);
-    *parent_start = 0;
-    printf("%s\n", base_path);
+    *exe_start = 0;
+    char* demo_start = last_strstr(argv[0], "demo");
+    int demo_pos = (demo_start - argv[0]);
+    memcpy(base_path, argv[0], demo_pos + 4);
+    base_path[demo_pos+4] = 0;
+    printf("base_path = %s\n", base_path);
     
     char archive_filepath[2048] = "";
     char preview_output_path[2048] = "";

@@ -40,15 +40,14 @@
 
 Once you have all the dependencies for C-ENCryptor library ready
 
-Assuming you are in `demo` folder, you can run following commands to build & run demo application:
+Assuming you are in `demo` folder, you can run following commands to build the demo application:
 
 ```sh
 mkdir build
 cmake -S . -B build
 cmake --build ./build/
-
-./build/bin/Debug/demo
 ```
 
 Demo application will try to decrypt file [data/encrypted/encrypted_img01.crypto](data/encrypted/encrypted_img01.crypto) and print all the metadata inside the archive.
 
+The decrypted preview image and file content will be save to a newly created folder [output](output)

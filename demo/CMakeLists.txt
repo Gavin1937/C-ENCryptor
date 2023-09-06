@@ -38,13 +38,6 @@ set_target_properties(C-ENCryptor PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(demo C-ENCryptor)
 
 
-# we will copy the data directory to where the executable is
-# and also create a output folder there so
-# we won't get any issue running the demo
-file(
-    COPY
-    "${CMAKE_CURRENT_SOURCE_DIR}/data/"
-    DESTINATION
-    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data/"
-)
-file(MAKE_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/output/")
+# we will create a "output" folder under "demo",
+# so we won't get any issue running the demo
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/output/")
