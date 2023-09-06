@@ -2,10 +2,10 @@
 #include <openssl/sha.h>
 
 #include <string.h>
-#include <assert.h>
 
 #include "../include/C-ENCryptor/crypto.h"
 #include "../include/C-ENCryptor/constants.h"
+#include "../include/C-ENCryptor/error_handle.h"
 
 
 int CE_AES_encrypt(
@@ -14,7 +14,10 @@ int CE_AES_encrypt(
 )
 {
     // check data_length
-    assert(data_length % AES_BLOCK_SIZE == 0);
+    condition_check(
+        (data_length % AES_BLOCK_SIZE != 0),
+        "data_length is not multiple of 16\n"
+    );
     
     // set iv & padding
     unsigned char tmp_iv[AES_CBC_IV_LENGTH];
@@ -27,13 +30,22 @@ int CE_AES_encrypt(
     // setup cipher
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_set_padding(ctx, pad);
-    assert(1 == EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv));
+    condition_check(
+        (1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv)),
+        "EVP_EncryptInit_ex failed\n"
+    );
     
     // encrypt
     int chunk_len = 0, output_len = 0;
-    assert(1 == EVP_EncryptUpdate(ctx, data_out, &chunk_len, data_in, data_length));
+    condition_check(
+        (1 != EVP_EncryptUpdate(ctx, data_out, &chunk_len, data_in, data_length)),
+        "EVP_EncryptUpdate failed\n"
+    );
     output_len += chunk_len;
-    assert(1 == EVP_EncryptFinal_ex(ctx, data_out + chunk_len, &chunk_len));
+    condition_check(
+        (1 != EVP_EncryptFinal_ex(ctx, data_out + chunk_len, &chunk_len)),
+        "EVP_EncryptFinal_ex failed\n"
+    );
     output_len += chunk_len;
     
     // finish
@@ -48,7 +60,10 @@ int CE_AES_decrypt(
 )
 {
     // check data_length
-    assert(data_length % AES_BLOCK_SIZE == 0);
+    condition_check(
+        (data_length % AES_BLOCK_SIZE != 0),
+        "data_length is not multiple of 16\n"
+    );
     
     // set iv & padding
     unsigned char tmp_iv[AES_CBC_IV_LENGTH];
@@ -61,13 +76,22 @@ int CE_AES_decrypt(
     // setup cipher
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
     EVP_CIPHER_CTX_set_padding(ctx, pad);
-    assert(1 == EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv));
+    condition_check(
+        (1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv)),
+        "EVP_DecryptInit_ex failed\n"
+    );
     
     // decrypt
     int chunk_len = 0, output_len = 0;
-    assert(1 == EVP_DecryptUpdate(ctx, data_out, &chunk_len, data_in, data_length));
+    condition_check(
+        (1 != EVP_DecryptUpdate(ctx, data_out, &chunk_len, data_in, data_length)),
+        "EVP_DecryptUpdate failed\n"
+    );
     output_len += chunk_len;
-    assert(1 == EVP_DecryptFinal_ex(ctx, data_out + chunk_len, &chunk_len));
+    condition_check(
+        (1 != EVP_DecryptFinal_ex(ctx, data_out + chunk_len, &chunk_len)),
+        "EVP_DecryptFinal_ex failed\n"
+    );
     output_len += chunk_len;
     
     // finish

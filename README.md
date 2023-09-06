@@ -8,11 +8,13 @@ The original repository is written in Objective-C and only for MAC OS, I decide 
 
 ## Dependencies
 
-* OpenSSL
+* OpenSSL 3
   * **you need to install OpenSSL development package by yourself**
+  * **currently C-ENCryptor only support libssl3**
   * [install in windows](https://slproweb.com/products/Win32OpenSSL.html)
-  * [install in ubuntu](https://linuxhint.com/install-openssl-libraries-on-ubuntu/)
-  * [install in macos](https://medium.com/@timmykko/using-openssl-library-with-macos-sierra-7807cfd47892)
+  * [install in ubuntu 22.04 and above](https://linuxhint.com/install-openssl-libraries-on-ubuntu/)
+    * [for ubuntu 22.04 below](https://github.com/bkw777/mainline/wiki/Install-libssl3)
+  * [install in macos](https://formulae.brew.sh/formula/openssl@3)
 * ZLib
   * ZLib repository is included as a submodule of this repository
 
@@ -39,6 +41,22 @@ cmake --build ./build/
 ### Building Demo
 
 checkout [instruction inside demo folder](demo/README.md)
+
+### Try out C-ENCryptor with Docker
+
+You can build C-ENCryptor using Docker:
+
+```sh
+docker build -t cencryptor .
+```
+
+Docker will build & compile C-ENCryptor library and demo application inside an image.
+
+After that, you can play with C-ENCryptor by launching a container from this image.
+
+```sh
+docker run -it --rm --name C-ENCryptor-demo cencryptor
+```
 
 ### Building Shared / Static Library
 

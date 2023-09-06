@@ -1,0 +1,9 @@
+*.bat
+*.ps1
+*.sh
+
+.git
+.vscode
+**/build
+**/output
+testing
