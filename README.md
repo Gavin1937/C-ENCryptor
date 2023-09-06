@@ -21,7 +21,7 @@ The original repository is written in Objective-C and only for MAC OS, I decide 
 
 ## Cross Platform
 
-One goal of writing this library is to make ENCrypto cross-platform.
+One goal of writing this library is to encrypt/decrypt ENCryptor archives cross-platform.
 
 Right now I've tested this library against both Windows 11 & Ubuntu 22.04, and it can be compiled on both platforms.
 
