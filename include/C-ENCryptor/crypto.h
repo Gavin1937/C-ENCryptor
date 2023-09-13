@@ -1,7 +1,57 @@
 #ifndef CRYPTO_H
 #define CRYPTO_H
 
+#ifdef CE_OSSL_COMPATIBLE_MODE
+#include <openssl/aes.h>
+#endif
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+
 #include <stdint.h>
+#include <stdbool.h>
+
+#include "constants.h"
+
+
+typedef struct CE_OSSL_AES_CTX {
+    unsigned char key[AES_CBC_KEY_LENGTH];
+    unsigned char iv[AES_CBC_IV_LENGTH];
+    int padding;
+    bool free_iv;
+#ifdef CE_OSSL_COMPATIBLE_MODE
+    AES_KEY ctx;
+#else
+    EVP_CIPHER_CTX* ctx;
+#endif
+} CE_OSSL_AES_CTX;
+
+void CE_OSSL_AES_encr_init(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* key, const unsigned char* iv,
+    const int padding
+);
+
+int CE_OSSL_AES_encr_update(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* data_in, unsigned char* data_out,
+    const int data_length
+);
+
+void CE_OSSL_AES_encr_finish(CE_OSSL_AES_CTX* ctx);
+
+void CE_OSSL_AES_decr_init(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* key, const unsigned char* iv,
+    const int padding
+);
+
+int CE_OSSL_AES_decr_update(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* data_in, unsigned char* data_out,
+    const int data_length
+);
+
+void CE_OSSL_AES_decr_finish(CE_OSSL_AES_CTX* ctx);
 
 int CE_AES_encrypt(
     const unsigned char* data_in, unsigned char* data_out, const int data_length,

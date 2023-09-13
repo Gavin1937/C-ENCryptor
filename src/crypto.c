@@ -1,6 +1,5 @@
-#include <openssl/evp.h>
-#include <openssl/sha.h>
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "../include/C-ENCryptor/crypto.h"
@@ -8,9 +7,42 @@
 #include "../include/C-ENCryptor/error_handle.h"
 
 
-int CE_AES_encrypt(
-    const unsigned char* data_in, unsigned char* data_out, const int data_length,
-    const unsigned char* key, const unsigned char* iv, const int padding
+void CE_OSSL_AES_encr_init(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* key, const unsigned char* iv,
+    const int padding
+)
+{
+    // set key, iv, & padding
+    memcpy(ctx->key, key, AES_CBC_KEY_LENGTH);
+    if (iv == NULL) {
+        memset(ctx->iv, 0, AES_CBC_IV_LENGTH);
+    }
+    else {
+        memcpy(ctx->iv, iv, AES_CBC_IV_LENGTH);
+    }
+    ctx->padding = padding == 0 ? NO_PADDING : PKCS7_PADDING;
+    
+    // setup cipher
+#ifdef CE_OSSL_COMPATIBLE_MODE
+    condition_check(
+        (0 != AES_set_encrypt_key(ctx->key, 128, &(ctx->ctx))),
+        "AES_set_encrypt_key failed\n"
+    );
+#else
+    ctx->ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX_set_padding(ctx->ctx, ctx->padding);
+    condition_check(
+        (1 != EVP_EncryptInit_ex(ctx->ctx, EVP_aes_128_cbc(), NULL, ctx->key, ctx->iv)),
+        "EVP_EncryptInit_ex failed\n"
+    );
+#endif
+}
+
+int CE_OSSL_AES_encr_update(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* data_in, unsigned char* data_out,
+    const int data_length
 )
 {
     // check data_length
@@ -19,38 +51,124 @@ int CE_AES_encrypt(
         "data_length is not multiple of 16\n"
     );
     
-    // set iv & padding
-    unsigned char tmp_iv[AES_CBC_IV_LENGTH];
-    if (iv == NULL)
-        memset(tmp_iv, 0, AES_CBC_IV_LENGTH);
-    else
-        memcpy(tmp_iv, iv, AES_CBC_IV_LENGTH);
-    int pad = padding == 0 ? NO_PADDING : PKCS7_PADDING;
-    
-    // setup cipher
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    EVP_CIPHER_CTX_set_padding(ctx, pad);
-    condition_check(
-        (1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv)),
-        "EVP_EncryptInit_ex failed\n"
-    );
-    
     // encrypt
+#ifdef CE_OSSL_COMPATIBLE_MODE
+    AES_cbc_encrypt(data_in, data_out, data_length, &(ctx->ctx), ctx->iv, AES_ENCRYPT);
+    
+    return data_length;
+#else
     int chunk_len = 0, output_len = 0;
     condition_check(
-        (1 != EVP_EncryptUpdate(ctx, data_out, &chunk_len, data_in, data_length)),
+        (1 != EVP_EncryptUpdate(ctx->ctx, data_out, &chunk_len, data_in, data_length)),
         "EVP_EncryptUpdate failed\n"
     );
     output_len += chunk_len;
     condition_check(
-        (1 != EVP_EncryptFinal_ex(ctx, data_out + chunk_len, &chunk_len)),
+        (1 != EVP_EncryptFinal_ex(ctx->ctx, data_out + chunk_len, &chunk_len)),
         "EVP_EncryptFinal_ex failed\n"
     );
     output_len += chunk_len;
     
-    // finish
-    EVP_CIPHER_CTX_free(ctx);    
     return output_len;
+#endif
+}
+
+void CE_OSSL_AES_encr_finish(CE_OSSL_AES_CTX* ctx)
+{
+#ifdef CE_OSSL_COMPATIBLE_MODE
+#else
+    EVP_CIPHER_CTX_free(ctx->ctx);
+#endif
+}
+
+void CE_OSSL_AES_decr_init(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* key, const unsigned char* iv,
+    const int padding
+)
+{
+    // set key, iv, & padding
+    memcpy(ctx->key, key, AES_CBC_KEY_LENGTH);
+    if (iv == NULL) {
+        memset(ctx->iv, 0, AES_CBC_IV_LENGTH);
+    }
+    else {
+        memcpy(ctx->iv, iv, AES_CBC_IV_LENGTH);
+    }
+    ctx->padding = padding == 0 ? NO_PADDING : PKCS7_PADDING;
+    
+    // setup cipher
+#ifdef CE_OSSL_COMPATIBLE_MODE
+    condition_check(
+        (0 != AES_set_decrypt_key(ctx->key, 128, &(ctx->ctx))),
+        "AES_set_decrypt_key failed\n"
+    );
+#else
+    ctx->ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX_set_padding(ctx->ctx, ctx->padding);
+    condition_check(
+        (1 != EVP_DecryptInit_ex(ctx->ctx, EVP_aes_128_cbc(), NULL, ctx->key, ctx->iv)),
+        "EVP_DecryptInit_ex failed\n"
+    );
+#endif
+}
+
+int CE_OSSL_AES_decr_update(
+    CE_OSSL_AES_CTX* ctx,
+    const unsigned char* data_in, unsigned char* data_out,
+    const int data_length
+)
+{
+    // check data_length
+    condition_check(
+        (data_length % AES_BLOCK_SIZE != 0),
+        "data_length is not multiple of 16\n"
+    );
+    
+    // decrypt
+#ifdef CE_OSSL_COMPATIBLE_MODE
+    AES_cbc_encrypt(data_in, data_out, data_length, &(ctx->ctx), ctx->iv, AES_DECRYPT);
+    
+    return data_length;
+#else
+    int chunk_len = 0, output_len = 0;
+    condition_check(
+        (1 != EVP_DecryptUpdate(ctx->ctx, data_out, &chunk_len, data_in, data_length)),
+        "EVP_DecryptUpdate failed\n"
+    );
+    output_len += chunk_len;
+    condition_check(
+        (1 != EVP_DecryptFinal_ex(ctx->ctx, data_out + chunk_len, &chunk_len)),
+        "EVP_DecryptFinal_ex failed\n"
+    );
+    output_len += chunk_len;
+    
+    return output_len;
+#endif
+}
+
+void CE_OSSL_AES_decr_finish(CE_OSSL_AES_CTX* ctx)
+{
+#ifdef CE_OSSL_COMPATIBLE_MODE
+#else
+    EVP_CIPHER_CTX_free(ctx->ctx);
+#endif
+}
+
+int CE_AES_encrypt(
+    const unsigned char* data_in, unsigned char* data_out, const int data_length,
+    const unsigned char* key, const unsigned char* iv, const int padding
+)
+{
+    CE_OSSL_AES_CTX ctx;
+    
+    CE_OSSL_AES_encr_init(&ctx, key, iv, padding);
+    
+    int result = CE_OSSL_AES_encr_update(&ctx, data_in, data_out, data_length);
+    
+    CE_OSSL_AES_encr_finish(&ctx);
+    
+    return result;
 }
 
 
@@ -59,44 +177,15 @@ int CE_AES_decrypt(
     const unsigned char* key, const unsigned char* iv, const int padding
 )
 {
-    // check data_length
-    condition_check(
-        (data_length % AES_BLOCK_SIZE != 0),
-        "data_length is not multiple of 16\n"
-    );
+    CE_OSSL_AES_CTX ctx;
     
-    // set iv & padding
-    unsigned char tmp_iv[AES_CBC_IV_LENGTH];
-    if (iv == NULL)
-        memset(tmp_iv, 0, AES_CBC_IV_LENGTH);
-    else
-        memcpy(tmp_iv, iv, AES_CBC_IV_LENGTH);
-    int pad = padding == 0 ? NO_PADDING : PKCS7_PADDING;
+    CE_OSSL_AES_decr_init(&ctx, key, iv, padding);
     
-    // setup cipher
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    EVP_CIPHER_CTX_set_padding(ctx, pad);
-    condition_check(
-        (1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, tmp_iv)),
-        "EVP_DecryptInit_ex failed\n"
-    );
+    int result = CE_OSSL_AES_decr_update(&ctx, data_in, data_out, data_length);
     
-    // decrypt
-    int chunk_len = 0, output_len = 0;
-    condition_check(
-        (1 != EVP_DecryptUpdate(ctx, data_out, &chunk_len, data_in, data_length)),
-        "EVP_DecryptUpdate failed\n"
-    );
-    output_len += chunk_len;
-    condition_check(
-        (1 != EVP_DecryptFinal_ex(ctx, data_out + chunk_len, &chunk_len)),
-        "EVP_DecryptFinal_ex failed\n"
-    );
-    output_len += chunk_len;
+    CE_OSSL_AES_decr_finish(&ctx);
     
-    // finish
-    EVP_CIPHER_CTX_free(ctx);    
-    return output_len;
+    return result;
 }
 
 int key_size_in_bytes(uint8_t aes_key_bits)

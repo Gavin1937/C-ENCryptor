@@ -36,9 +36,9 @@
 * [data/password_for_all.txt](data/password_for_all.txt) contains the password for all .crypto archive files
 
 
-## Building
+## Building Demo Application
 
-Once you have all the dependencies for C-ENCryptor library ready
+Once you have [all the dependencies for C-ENCryptor library](../BUILD.md) ready
 
 Assuming you are in `demo` folder, you can run following commands to build the demo application:
 
@@ -47,6 +47,8 @@ mkdir build
 cmake -S . -B build
 cmake --build ./build/
 ```
+
+**cmake will automatically create a folder `output` for you to play with**
 
 Demo application will take 2 arguments `[archive_filepath]` and `[output_folderpath]`
 

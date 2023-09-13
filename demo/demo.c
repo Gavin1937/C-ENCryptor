@@ -123,10 +123,12 @@ int main(int argc, char** argv)
     unsigned char* preview_bytes = malloc(arc.header_locator.directory_locator.archive_preview_size);
     int size_read = CEDirectoryLocator_decrypt_preview(&(arc.header_locator.directory_locator), arc.header_locator.master_key, arc.fp, preview_bytes);
     FILE* preview_fp = fopen(preview_output_filename, "wb+");
-    if (preview_fp && preview_bytes) {
-        fwrite(preview_bytes, 1, size_read, preview_fp);
-        fclose(preview_fp);
+    if (!preview_fp) {
+        printf("Failed to open preview_fp\n");
+        exit(-1);
     }
+    fwrite(preview_bytes, 1, size_read, preview_fp);
+    fclose(preview_fp);
     free(preview_bytes);
     
     

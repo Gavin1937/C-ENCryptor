@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib/zlib.h>
-#include <openssl/evp.h>
-#include <openssl/sha.h>
 
 
 EXPORT_SYMBOL void CEArchiveItem_init(
@@ -127,13 +125,8 @@ EXPORT_SYMBOL void CEArchiveItem_decrypt(
     // setup AES cipher
     // we MUST decrypt data chunks in this way instead of using CE_AES_decrypt(),
     // otherwise we will receive wrong data in front of each chunk during incremental decryption
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    EVP_CIPHER_CTX_set_padding(ctx, NO_PADDING);
-    condition_check(
-        (0 == EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, file_aes_key, file_aes_iv)),
-        "Failed to init AES cipher"
-    );
-    int aes_chunk_len = 0, aes_output_len = 0;
+    CE_OSSL_AES_CTX ctx;
+    CE_OSSL_AES_decr_init(&ctx, file_aes_key, file_aes_iv, NO_PADDING);
     
     
     // other setup
@@ -173,17 +166,7 @@ EXPORT_SYMBOL void CEArchiveItem_decrypt(
         // read from file & decrypt
         fread(left_buff, (size_t)1, (size_t)size_to_read, fp);
         
-        condition_check(
-            (0 == EVP_DecryptUpdate(ctx, right_buff, &aes_chunk_len, left_buff, (int)size_to_read)),
-            "Failed to decrypt"
-        );
-        aes_output_len += aes_chunk_len;
-        
-        condition_check(
-            (0 == EVP_DecryptFinal_ex(ctx, right_buff + aes_chunk_len, &aes_chunk_len)),
-            "Failed to decrypt"
-        );
-        aes_output_len += aes_chunk_len;
+        CE_OSSL_AES_decr_update(&ctx, left_buff, right_buff, (int)size_to_read);
         
         
         // setup zlib input buffer & size
@@ -239,7 +222,7 @@ EXPORT_SYMBOL void CEArchiveItem_decrypt(
     }
     
     // cleanup
-    EVP_CIPHER_CTX_free(ctx);
+    CE_OSSL_AES_decr_finish(&ctx);
     (void)inflateEnd(&strm);
 }
 
@@ -271,6 +254,7 @@ int decrypt_key_iv(
     unsigned char* key_iv_bytes_encrypted = malloc(key_iv_len);
     unsigned char* key_iv_bytes_decrypted = malloc(key_iv_len);
     
+    fseek(fp, start, SEEK_SET);
     read_file(fp, key_iv_len, key_iv_bytes_encrypted);
     CE_AES_decrypt(key_iv_bytes_encrypted, key_iv_bytes_decrypted, key_iv_len, master_key, NULL, NO_PADDING);
     
@@ -304,6 +288,8 @@ read_item_header_ret read_item_header(
     // read first 16 bytes to get encrypted file header size
     unsigned char first_16_bytes_encrypted[16];
     unsigned char first_16_bytes_decrypted[16];
+    uint64_t item_header_start = start + key_iv_len;
+    fseek(fp, item_header_start, SEEK_SET);
     read_file(fp, 16, first_16_bytes_encrypted);
     CE_AES_decrypt(first_16_bytes_encrypted, first_16_bytes_decrypted, 16, aes_key, aes_iv, NO_PADDING);
     
@@ -316,7 +302,6 @@ read_item_header_ret read_item_header(
     uint16_t header_padding_len = 0;
     
     // decrypt entire file header
-    uint64_t item_header_start = start+key_iv_len;
     int item_header_size = 4+4+header_size;
     fseek(fp, (long)item_header_start, SEEK_SET);
     unsigned char* item_header_encrypted = malloc(item_header_size);
